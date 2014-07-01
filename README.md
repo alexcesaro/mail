@@ -7,6 +7,9 @@ This repository contains mail packages for Go:
    quoted-printable and message header encoding. Someday, it might enter the Go
    standard library.
 
+You are more than welcome to ask questions on the [Go mailing-list](https://groups.google.com/d/topic/golang-nuts/ywPpNlmSt6U/discussion) and open issues here if you find bugs.
+
+
 # gomail
 
 [Documentation](http://godoc.org/github.com/alexcesaro/mail/gomail)
