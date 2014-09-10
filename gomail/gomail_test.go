@@ -3,6 +3,7 @@ package gomail
 import (
 	"bytes"
 	"encoding/base64"
+	"io"
 	"io/ioutil"
 	"net/mail"
 	"path/filepath"
@@ -297,39 +298,74 @@ func TestBase64LineLength(t *testing.T) {
 
 func testMessage(t *testing.T, msg *Message, header mail.Header, body string) {
 	m := export(t, msg)
+	defer func() {
+		lastExportedMessage = nil
+	}()
 
-	want := &mail.Message{Header: header, Body: strings.NewReader(body)}
-	for key := range want.Header {
+	for key := range header {
 		if _, ok := m.Header[key]; !ok {
 			t.Errorf("Missing header: %q", key)
 		} else {
 			gotHeader := strings.Join(m.Header[key], ", ")
-			wantHeader := strings.Join(m.Header[key], ", ")
+			wantHeader := strings.Join(header[key], ", ")
 			if gotHeader != wantHeader {
 				t.Errorf("Invalid header %q, got: %q, want: %q", key, gotHeader, wantHeader)
 			}
 		}
 	}
 	for key := range m.Header {
-		if _, ok := want.Header[key]; !ok {
+		if _, ok := header[key]; !ok {
 			t.Errorf("Header %q should not be set", key)
 		}
 	}
 
-	var (
-		got, expected []byte
-		err           error
-	)
-	if got, err = ioutil.ReadAll(m.Body); err != nil {
-		t.Error(err)
+	compareBodies(t, m.Body, body)
+}
+
+func compareBodies(t *testing.T, r io.Reader, want string) {
+	// The ordering of headers' fields of sub-parts is random so we cannot do a
+	// simple comparison here.
+	body, err := ioutil.ReadAll(r)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if expected, err = ioutil.ReadAll(want.Body); err != nil {
-		t.Error(err)
+	got := string(body)
+	gotLines := strings.Split(got, "\r\n")
+	wantLines := strings.Split(want, "\r\n")
+
+	headerStart := -1
+	for i, line := range wantLines {
+		if line == gotLines[i] {
+			if line == "" {
+				headerStart = -1
+			} else if len(line) > 2 && line[:2] == "--" {
+				headerStart = i + 1
+			}
+			continue
+		}
+
+		if headerStart == -1 {
+			missingLine(t, line, got, want)
+		}
+
+		isMissing := true
+		for j := headerStart; j < len(wantLines); j++ {
+			if gotLines[j] == "" {
+				break
+			}
+			if gotLines[j] == line {
+				isMissing = false
+				break
+			}
+		}
+		if isMissing {
+			missingLine(t, line, got, want)
+		}
 	}
-	if string(got) != string(expected) {
-		t.Errorf("Message body is not valid, got:\n%s\nwant:\n%s", got, expected)
-	}
-	lastExportedMessage = nil
+}
+
+func missingLine(t *testing.T, line, got, want string) {
+	t.Fatalf("Message body is not valid, missing line %q\ngot:\n%s\nwant:\n%s", line, got, want)
 }
 
 func export(t *testing.T, msg *Message) *mail.Message {
