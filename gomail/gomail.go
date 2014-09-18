@@ -38,7 +38,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/alexcesaro/mail/mailer"
+	"github.com/RangelReale/mail/mailer"
 	"github.com/alexcesaro/mail/quotedprintable"
 )
 
@@ -68,8 +68,9 @@ type part struct {
 }
 
 type attachment struct {
-	name    string
-	content []byte
+	name        string
+	contentType string
+	content     []byte
 }
 
 // NewCustomMessage creates a new message that will use the given encoding and
@@ -184,7 +185,14 @@ func (msg *Message) Attach(filename string) error {
 	if err != nil {
 		return err
 	}
-	msg.attachments = append(msg.attachments, attachment{filepath.Base(filename), content})
+	msg.attachments = append(msg.attachments, attachment{filepath.Base(filename), "", content})
+
+	return nil
+}
+
+// Attach attaches a file to the message.
+func (msg *Message) AttachData(name string, contentType string, data []byte) error {
+	msg.attachments = append(msg.attachments, attachment{name, contentType, data})
 
 	return nil
 }
@@ -206,6 +214,11 @@ func NewMailer(host string, username string, password string, port int) Mailer {
 // NewCustomMailer creates a mailer using any authentication mechanism.
 func NewCustomMailer(auth smtp.Auth, addr string) Mailer {
 	return Mailer{m: mailer.NewCustomMailer(auth, addr)}
+}
+
+// NewCustomSendMailer creates a mailer using a custom mailer function and any authentication mechanism.
+func NewCustomSendMailer(sendmailfunc mailer.SendMailFunc, auth smtp.Auth, addr string) Mailer {
+	return Mailer{m: mailer.NewCustomSendMailer(sendmailfunc, auth, addr)}
 }
 
 // Send sends the emails to the recipients of the message.

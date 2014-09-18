@@ -78,7 +78,7 @@ var (
 
 func TestMessage(t *testing.T) {
 	i := 0
-	sendMail = func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
+	testMailer.sendMail = func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
 		if i > len(expected) {
 			t.Fatalf("Only %d mails should be sent", len(expected))
 		}
