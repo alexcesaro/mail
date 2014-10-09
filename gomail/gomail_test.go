@@ -41,6 +41,26 @@ func TestMessage(t *testing.T) {
 	testMessage(t, msg, header, "=C2=A1Hola, se=C3=B1or!")
 }
 
+func TestAddress(t *testing.T) {
+	address1, _ := mail.ParseAddress("Mr. From <from@example.com>")
+	address2, _ := mail.ParseAddress("Mr. To <to@example.com>")
+	address3, _ := mail.ParseAddress("Mr. ToTwo <totwo@example.com>")
+
+	msg := NewMessage()
+	msg.SetAddress("From", address1)
+	msg.SetAddress("To", address2)
+	msg.AddAddress("To", address3)
+
+	header := mail.Header{
+		"From":         {"Mr. From <from@example.com>"},
+		"To":           {"Mr. To <to@example.com>", "Mr. ToTwo <totwo@example.com>"},
+		"Date":         {"25 Jun 14 17:46 UTC"},
+		"Mime-Version": {"1.0"},
+	}
+
+	testMessage(t, msg, header, "")
+}
+
 func TestCustomMessage(t *testing.T) {
 	msg := NewCustomMessage("ISO-8859-1", Base64)
 	msg.AddHeader("Subject", "café")

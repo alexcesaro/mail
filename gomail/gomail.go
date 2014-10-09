@@ -34,6 +34,7 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
+	"net/mail"
 	"net/smtp"
 	"path/filepath"
 	"time"
@@ -112,6 +113,24 @@ func (msg *Message) AddHeader(field, value string) {
 
 func (msg *Message) encodeHeader(value string) string {
 	return msg.hEncoder.EncodeHeader(value)
+}
+
+// SetAddress sets an address to the given header field using a mail.Address
+func (msg *Message) SetAddress(field string, address *mail.Address) {
+	if address.Name == "" {
+		msg.SetHeader(field, address.Address)
+	} else {
+		msg.SetAddressHeader(field, address.Address, address.Name)
+	}
+}
+
+// AddAddress adds an address to the given header field using a mail.Address
+func (msg *Message) AddAddress(field string, address *mail.Address) {
+	if address.Name == "" {
+		msg.AddHeader(field, address.Address)
+	} else {
+		msg.AddAddressHeader(field, address.Address, address.Name)
+	}
 }
 
 // SetAddressHeader sets an address to the given header field.
