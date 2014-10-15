@@ -53,6 +53,7 @@ func (msg *Message) Export() (*mail.Message, error) {
 		h.Set("Content-Type", mimeType+"; name=\""+attachment.name+"\"")
 		h.Set("Content-Disposition", "attachment; filename=\""+attachment.name+"\"")
 		h.Set("Content-Transfer-Encoding", Base64)
+		h.Set("Content-ID", "<"+attachment.name+">")
 
 		w.writeHeader(h)
 		if err := w.writeBody(attachment.content, Base64); err != nil {
