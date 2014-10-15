@@ -42,24 +42,33 @@ import (
 	"strings"
 )
 
+type SendMailFunc func(addr string, a smtp.Auth, from string, to []string, msg []byte) error
+
 // A Mailer represents an SMTP server.
 type Mailer struct {
-	auth smtp.Auth
-	addr string
+	auth     smtp.Auth
+	addr     string
+	sendMail SendMailFunc
 }
 
 // NewMailer returns a mailer. The given parameters are used to connect to the
 // SMTP server via a PLAIN authentication mechanism.
 func NewMailer(host string, username string, password string, port int) *Mailer {
 	return &Mailer{
-		auth: smtp.PlainAuth("", username, password, host),
-		addr: fmt.Sprintf("%s:%d", host, port),
+		auth:     smtp.PlainAuth("", username, password, host),
+		addr:     fmt.Sprintf("%s:%d", host, port),
+		sendMail: smtp.SendMail,
 	}
 }
 
 // NewCustomMailer creates a mailer using any authentication mechanism.
 func NewCustomMailer(auth smtp.Auth, addr string) *Mailer {
-	return &Mailer{auth, addr}
+	return &Mailer{auth, addr, smtp.SendMail}
+}
+
+// NewCustomSendMailer creates a mailer using a custom mailer function and any authentication mechanism.
+func NewCustomSendMailer(sendmailfunc SendMailFunc, auth smtp.Auth, addr string) *Mailer {
+	return &Mailer{auth, addr, sendmailfunc}
 }
 
 // Send sends the emails to the recipients of the message.
@@ -77,7 +86,7 @@ func (m *Mailer) Send(msg *mail.Message) error {
 	}
 
 	mail := append(h, body...)
-	if err := sendMail(m.addr, m.auth, from, recipients, mail); err != nil {
+	if err := m.sendMail(m.addr, m.auth, from, recipients, mail); err != nil {
 		return err
 	}
 
@@ -85,7 +94,7 @@ func (m *Mailer) Send(msg *mail.Message) error {
 		for _, to := range bcc {
 			h = flattenHeader(msg, to)
 			mail = append(h, body...)
-			if err := sendMail(m.addr, m.auth, from, []string{to}, mail); err != nil {
+			if err := m.sendMail(m.addr, m.auth, from, []string{to}, mail); err != nil {
 				return err
 			}
 		}
@@ -168,4 +177,4 @@ func parseAddress(field string) (string, error) {
 }
 
 // Stubbed out for testing.
-var sendMail = smtp.SendMail
+//var sendMail = smtp.SendMail

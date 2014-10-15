@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/alexcesaro/mail/quotedprintable"
+	"github.com/RangelReale/mail/quotedprintable"
 )
 
 // Export converts the message into a net/mail.Message.
@@ -44,7 +44,10 @@ func (msg *Message) Export() (*mail.Message, error) {
 	}
 
 	for _, attachment := range msg.attachments {
-		mimeType := mime.TypeByExtension(filepath.Ext(attachment.name))
+		mimeType := attachment.contentType
+		if mimeType == "" {
+			mimeType = mime.TypeByExtension(filepath.Ext(attachment.name))
+		}
 		if mimeType == "" {
 			mimeType = "application/octet-stream"
 		}
