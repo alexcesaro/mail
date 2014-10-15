@@ -1,3 +1,4 @@
+// Deprecated, use https://github.com/go-gomail/gomail instead.
 // Package mailer provides functions to easily send emails.
 //
 // This package should be used with or inside a package that helps writing

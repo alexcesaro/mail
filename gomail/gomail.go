@@ -1,3 +1,4 @@
+// Deprecated, use https://github.com/go-gomail/gomail instead.
 // Package gomail provides a simple interface to easily write and send emails.
 //
 // Example:

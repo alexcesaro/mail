@@ -9,6 +9,7 @@
 // 2. it will pass through a '\r' or '\n' not preceded by '=', consistent
 //    with other broken QP encoders & decoders.
 
+// Deprecated, use https://github.com/alexcesaro/quotedprintable instead.
 // Package quotedprintable implements quoted-printable and message header encoding as
 // specified by RFC 2045 and RFC 2047.
 package quotedprintable

@@ -1,3 +1,93 @@
+# Deprecated
+
+This package is deprecated, use these new repositories instead:
+ * Gomail: https://github.com/go-gomail/gomail
+ * quotedprintable: https://github.com/alexcesaro/quotedprintable
+ * mailer has been merged into Gomail
+
+The new version of Gomail has new features, better performances and a simpler
+API!
+
+Here is the list of breaking changes and how to update your code:
+
+## Import
+
+Before:
+
+    import "github.com/alexcesaro/mail/gomail"
+
+After:
+
+    import "gopkg.in/gomail.v1"
+
+
+## Add*Header functions
+
+Functions AddHeader, AddAddressHeader and AddDateHeader were removed.
+
+Before:
+
+    msg.SetHeader("To", "alex@example.com")
+    msg.AddHeader("To", "bob@example.com")
+
+After:
+
+    msg.SetHeader("From", "alex@example.com", "bob@example.com")
+
+To replace AddAddressHeader and AddDateHeader you can use the new functions FormatAddress and FormatDate with SetHeader or SetHeaders.
+
+
+## Attach a file
+
+Before:
+
+    if err := msg.Attach("/home/Alex/lolcat.jpg"); err != nil {
+        panic(err)
+    }
+
+After:
+
+    f, err := gomail.OpenFile("/home/Alex/lolcat.jpg")
+    if err != nil {
+        panic(err)
+    }
+    msg.Attach(f)
+
+
+## NewCustomMessage
+
+Before:
+
+    msg := NewMessage("ISO-8859-1", Base64)
+
+After:
+
+    msg := NewMessage(SetCharset("ISO-8859-1"), SetEncoding(Base64))
+
+
+## Export
+
+Before:
+
+    m, err := msg.Export()
+    if err != nil {
+        panic(err)
+    }
+
+After:
+
+    m := msg.Export()
+
+
+## Constants
+
+Constants `QuotedPrintable` and `Base64` had type `string` and now have type
+`Encoding`. If you just used these constants in NewCustomMessage there is
+nothing to do.
+
+
+----
+
 This repository contains mail packages for Go:
  - [gomail](#gomail) is the main package of this repository, it provides a
    simple interface to easily write and send emails.
